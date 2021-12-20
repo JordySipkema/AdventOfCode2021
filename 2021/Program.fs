@@ -7,3 +7,4 @@ module Program =
     //Day01.solutionPart2 |> ignore
 
     Day02.solutionPart1 |> ignore
+    Day02.solutionPart2 |> ignore
