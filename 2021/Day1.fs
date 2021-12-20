@@ -1,16 +1,15 @@
-﻿namespace AdventOfCode2021
+﻿namespace AdventOfCode_2021
 
-module Day01 = 
+module Day01 =
     open System
-    open System.IO
 
     // Shared
-    let inputFile = "./input/input.txt"
+    let inputFile = "./input/day01.txt"
 
     let readInput =
-        File.ReadLines(inputFile)
-        |> List.ofSeq        // Convert IEnumerable to F# native list
+        Library.ReadFile inputFile
         |> List.map (int)    // Convert String to Int
+
 
     // Part One
     let countHigherThanlast inputList =
@@ -26,6 +25,7 @@ module Day01 =
         |> sprintf "The answer is: %A"
         |> Console.WriteLine
 
+
     // Part Two
     let windowedSum windowSize list =
         list
@@ -38,7 +38,3 @@ module Day01 =
         |> countHigherThanlast
         |> sprintf "The answer is: %A"
         |> Console.WriteLine
-
-    // Execute functions to display results
-    solutionPart1 |> ignore
-    solutionPart2 |> ignore
