@@ -34,16 +34,41 @@
 
 //Determine the horizontal position that the crabs can align to using the least fuel possible. How much fuel must they spend to align to that position?
 
+//--- Part Two ---
+
+//The crabs don't seem interested in your proposed solution. Perhaps you misunderstand crab engineering?
+
+//As it turns out, crab submarine engines don't burn fuel at a constant rate. Instead, each change of 1 step in horizontal position costs 1 more unit of fuel than the last: the first step costs 1, the second step costs 2, the third step costs 3, and so on.
+
+//As each crab moves, moving further becomes more expensive. This changes the best horizontal position to align them all on; in the example above, this becomes 5:
+
+//    Move from 16 to 5: 66 fuel
+//    Move from 1 to 5: 10 fuel
+//    Move from 2 to 5: 6 fuel
+//    Move from 0 to 5: 15 fuel
+//    Move from 4 to 5: 1 fuel
+//    Move from 2 to 5: 6 fuel
+//    Move from 7 to 5: 3 fuel
+//    Move from 1 to 5: 10 fuel
+//    Move from 2 to 5: 6 fuel
+//    Move from 14 to 5: 45 fuel
+
+//This costs a total of 168 fuel. This is the new cheapest possible outcome; the old alignment position (2) now costs 206 fuel instead.
+
+//Determine the horizontal position that the crabs can align to using the least fuel possible so they can make you an escape route! How much fuel must they spend to align to that position?
+
 module Day07 =
     open System
 
     // Shared
-    let inputFile = "./input/day06.txt"
+    let inputFile = "./input/day07.txt"
 
     let CrabFromString (str:string) =
         str.Split(",") 
         |> Seq.map int // Convert to integers
         |> Seq.toList
+        |> List.countBy id
+        //|> Map.ofList
 
     let readInput =
         Library.ReadFile inputFile
@@ -51,11 +76,50 @@ module Day07 =
         |> List.head
 
 
+    let possiblePositionsFor crabs =
+        crabs
+        |> Seq.map fst
+        |> function keys -> [Seq.min keys .. Seq.max keys]
+
+    let rec calulateFuelConsumption algorithm target crabs =
+        match crabs with
+        | [] -> 0
+        | (pos, cnt)::tail -> (
+            (algorithm pos target * cnt) + calulateFuelConsumption algorithm target tail 
+        )
+    let getLeastFuelRequired algorithm crabs =
+        possiblePositionsFor crabs
+        |> List.map (fun tgt -> tgt,calulateFuelConsumption algorithm tgt crabs)
+        |> List.minBy snd
+
+
+    // Part one: Fuel is linear
+    let lineairFuelConsumption pos tgt = pos - tgt |> abs
+    
+    // SOLUTION PART 1
     let solutionPart1 =
         readInput
-        |> sprintf "The answer is: %A"
+        |> getLeastFuelRequired lineairFuelConsumption
+        |> snd // Get the consumption only
+        |> sprintf "The answer is: %A Fuel"
 
 
+
+    // Part two: Fuel gets more expensive each step.
+    let calculateExpFuelConsumption n =
+        match n with
+        | 0 -> 0
+        | 1 -> 1
+        | n -> [1..n] |> List.reduce (+)
+
+    let exponentialFuelConsumption pos tgt =
+        pos - tgt 
+        |> abs
+        |> calculateExpFuelConsumption
+
+    // SOLUTION PART 2
     let solutionPart2 =
         readInput
-        |> sprintf "The answer is: %A"
+        |> getLeastFuelRequired exponentialFuelConsumption
+        |> snd // Get the consumption only
+        |> sprintf "The answer is: %A Fuel"
