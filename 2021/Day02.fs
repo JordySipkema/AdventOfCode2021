@@ -61,7 +61,6 @@ module Day02 =
             |> GetPosition Depth
 
         sprintf "Horizontal Postition %A * Depth: %A = %A" horPos depth (horPos*depth)
-        |> Console.WriteLine
 
         
 
@@ -98,4 +97,3 @@ module Day02 =
         readInput
         |> dive Submarine.init
         |> submarineToString
-        |> Console.WriteLine

@@ -23,7 +23,6 @@ module Day01 =
         readInput
         |> countHigherThanlast
         |> sprintf "The answer is: %A"
-        |> Console.WriteLine
 
 
     // Part Two
@@ -37,4 +36,3 @@ module Day01 =
         |> windowedSum 3
         |> countHigherThanlast
         |> sprintf "The answer is: %A"
-        |> Console.WriteLine
