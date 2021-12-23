@@ -72,26 +72,213 @@
 
 //In the output values, how many times do digits 1, 4, 7, or 8 appear?
 
+//--- Part Two ---
+
+//Through a little deduction, you should now be able to determine the remaining digits. Consider again the first example above:
+
+//acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab |
+//cdfeb fcadb cdfeb cdbaf
+
+//After some careful analysis, the mapping between signal wires and segments only make sense in the following configuration:
+
+//   dddd
+//  e    a
+//  e    a
+//   ffff
+//  g    b
+//  g    b
+//   cccc
+
+//So, the unique signal patterns would correspond to the following digits:
+
+//    acedgfb: 8
+//    cdfbe: 5
+//    gcdfa: 2
+//    fbcad: 3
+//    dab: 7
+//    cefabd: 9
+//    cdfgeb: 6
+//    eafb: 4
+//    cagedb: 0
+//    ab: 1
+
+//Then, the four digits of the output value can be decoded:
+
+//    cdfeb: 5
+//    fcadb: 3
+//    cdfeb: 5
+//    cdbaf: 3
+
+//Therefore, the output value for this entry is 5353.
+
+//Following this same process for each entry in the second, larger example above, the output value of each entry can be determined:
+
+//    fdgacbe cefdb cefbgd gcbe: 8394
+//    fcgedb cgb dgebacf gc: 9781
+//    cg cg fdcagb cbg: 1197
+//    efabcd cedba gadfec cb: 9361
+//    gecf egdcabf bgf bfgea: 4873
+//    gebdcfa ecba ca fadegcb: 8418
+//    cefg dcbef fcge gbcadfe: 4548
+//    ed bcgafe cdgba cbgef: 1625
+//    gbdfcae bgc cg cgb: 8717
+//    fgae cfgab fg bagce: 4315
+
+//Adding all of the output values in this larger example produces 61229.
+
+//For each entry, determine all of the wire/segment connections and decode the four-digit output values. What do you get if you add up all of the output values?
+
+
 module Day08 =
     open System
 
+    type Segment = char list
+    type Segments = Segment list
+    type SegmentInfo = Segments * Segments
+
     // Shared
-    let inputFile = "./input/day07.txt"
+    let inputFile = "./input/day08.txt"
+
+    let ParseSegments (str:string) : Segments =
+        str.Trim().Split(' ')
+        |> Seq.map Seq.toList
+        |> Seq.toList
 
     let ParseInput (str:string) =
-        str.Split("|") 
-        |> id // TODO
+        match str.Split("|") with
+        | [|l;r|] -> ParseSegments l, ParseSegments r
+        | _ -> failwith "Incompatible input: Line"
 
     let readInput =
         Library.ReadFile inputFile
         |> List.map ParseInput
 
-
+    let isOneFourSevenOrEight (segment:Segment) =
+        match segment.Length with
+        | 2 | 3 | 4 | 7 ->  true
+        | _ -> false
 
     let solutionPart1 =
         readInput
+        |> List.map snd
+        |> List.concat
+        |> List.filter isOneFourSevenOrEight
+        |> List.length
         |> sprintf "The answer is: %A"
+
+//--- Part Two ---
+
+// Display used:
+//    aaaa 
+//   f    b         0 = abcdef (6)    5 = acdfg    (5)  
+//   f    b         1 = bc     (2)    6 = acdefg   (6)   
+//    gggg          2 = abedg  (5)    7 = abc      (3)
+//   e    c         3 = abcdg  (5)    8 = abcdefg  (7)    
+//   e    c         4 = bcfg   (4)    9 = abcdfg   (6)   
+//    dddd     digit^    ^segments                  ^number of segments   
+
+// Example numbers:
+//    aaaa                  aaaa       aaaa               
+//   f    b          b          b          b     f    b   
+//   f    b          b          b          b     f    b   
+//                          gggg       gggg       gggg    
+//   e    c          c     e               c          c   
+//   e    c          c     e               c          c   
+//    dddd                  dddd       dddd             
+//
+//    aaaa       aaaa       aaaa       aaaa       aaaa    
+//   f          f               b     f    b     f    b   
+//   f          f               b     f    b     f    b   
+//    gggg       gggg                  gggg       gggg    
+//        c     e    c          c     e    c          c   
+//        c     e    c          c     e    c          c   
+//    dddd       dddd                  dddd       dddd     
+
+// Occurence of segments in digits:
+// Segment a is in 8 numbers      // Segment e is in 4 numbers !
+// Segment b is in 8 numbers      // Segment f is in 6 numbers !
+// Segment c is in 9 numbers !    // Segment g is in 7 numbers
+// Segment d is in 7 numbers
+
+// Known numbers: 
+// One    (2 segments)             // Four   (4 segments)
+// Seven  (3 segments)             // Eight  (all seven segments)
+
+// Conclusion:
+// a = Seven - One            // e = Is in 4 numbers
+// b = One - 'c'              // f = Is in 6 numbers
+// c = Is in 9 numbers        // g = Four - 'bcf'
+// d = Eight - 'abcefg'
+
+
+    let numberOfSegments test (segment:Segment) = (segment.Length = test)
+    let numberOfOccurences test (_,occurences) = (occurences = test)
+    let charNotIn list char = (list |> List.contains char |> not)
+
+    let decodeSegments (segments:Segments) =
+        let occurences = segments |> List.concat |> List.countBy id
+        
+        // Numbers based on segment count
+        let one   = segments |> List.find (numberOfSegments 2)
+        let four  = segments |> List.find (numberOfSegments 4)
+        let seven = segments |> List.find (numberOfSegments 3)
+        let eight = segments |> List.find (numberOfSegments 7)
+
+        // Individual segments
+        let c = occurences |> List.find (numberOfOccurences 9) |> fst
+        let e = occurences |> List.find (numberOfOccurences 4) |> fst
+        let f = occurences |> List.find (numberOfOccurences 6) |> fst
+        let a = seven |> List.find (charNotIn one)
+        let b = one   |> List.find (charNotIn [c])
+        let g = four  |> List.find (charNotIn [b;c;f])
+        let d = eight |> List.find (charNotIn [a;b;c;e;f;g])
+        
+        // Create remaining numbers:
+        let zero  = [a; b; c; d; e; f   ]
+        let two   = [a; b;    d; e;    g]
+        let three = [a; b; c; d;       g]
+        let five  = [a;    c; d;    f; g]
+        let six   = [a;    c; d; e; f; g]
+        let nine  = [a; b; c; d;    f; g]
+
+        // Return the mapping in the form of Key=char list, Value=int
+        Map.empty
+        |> Map.add (zero  |> List.sort)  0
+        |> Map.add (one   |> List.sort)  1
+        |> Map.add (two   |> List.sort)  2
+        |> Map.add (three |> List.sort)  3
+        |> Map.add (four  |> List.sort)  4
+        |> Map.add (five  |> List.sort)  5
+        |> Map.add (six   |> List.sort)  6
+        |> Map.add (seven |> List.sort)  7
+        |> Map.add (eight |> List.sort)  8
+        |> Map.add (nine  |> List.sort)  9
+
+    let digitListToNumber list =
+        // Recursive number builder using powers of 10.
+        // Starting with idx = 0 ; 10^0=1, 10^1=10, 10^2=100...
+        let rec numberBuilder exp list =
+            match list with
+            | [] -> 0    // done
+            | digit::tail -> (pown 10 exp)*digit + numberBuilder (exp+1) tail
+
+        list
+        |> List.rev          // Start with the least significant number first.
+        |> numberBuilder 0   // Start recursive loop with 10^0=1.
+
+    let decodeReading (observation, reading) =
+        let decodingMap = decodeSegments observation
+        reading
+        |> List.map List.sort // sort characters alphabetically
+        |> List.map (fun segment ->
+            match decodingMap.TryFind segment with
+            | Some number -> number
+            | None -> failwith "Segment not found in decoding map"
+        )
+        |> digitListToNumber
 
     let solutionPart2 =
         readInput
+        |> List.map decodeReading
+        |> List.reduce(+)
         |> sprintf "The answer is: %A"

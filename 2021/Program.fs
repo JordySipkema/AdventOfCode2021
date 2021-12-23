@@ -15,5 +15,7 @@ module Program =
     //Day05.solutionPart2 |> Console.WriteLine
     //Day06.solutionPart1 |> Console.WriteLine
     //Day06.solutionPart2 |> Console.WriteLine
-    Day07.solutionPart1 |> Console.WriteLine
-    Day07.solutionPart2 |> Console.WriteLine
+    //Day07.solutionPart1 |> Console.WriteLine
+    //Day07.solutionPart2 |> Console.WriteLine
+    Day08.solutionPart1 |> Console.WriteLine
+    Day08.solutionPart2 |> Console.WriteLine
